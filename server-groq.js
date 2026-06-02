@@ -4,7 +4,6 @@ import fs from 'fs';
 const app = express();
 app.use(express.json());
 
-// CORS habilitado
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -23,9 +22,7 @@ if (!GROQ_API_KEY) {
 }
 
 function loadData() {
-    if (!fs.existsSync(USAGE_FILE)) {
-        fs.writeFileSync(USAGE_FILE, '{}');
-    }
+    if (!fs.existsSync(USAGE_FILE)) fs.writeFileSync(USAGE_FILE, '{}');
     return JSON.parse(fs.readFileSync(USAGE_FILE, 'utf-8'));
 }
 
@@ -57,19 +54,19 @@ function getUserUsage(userId) {
 function getTamanhoInstrucoes(duracao) {
     const min = parseInt(duracao);
     if (min <= 5) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço MUITO CURTO: 1 ponto principal, introdução de 2 linhas, conclusão de 2 linhas. Total: 200-300 palavras.`;
+        return `Duração: ${duracao}. Esboço MUITO CURTO: 1 ponto principal com 1 ilustração curta. Introdução de 2 linhas. Conclusão de 2 linhas. Total: 200-300 palavras.`;
     } else if (min <= 10) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço CURTO: 2 pontos principais, introdução breve, conclusão breve. Total: 300-450 palavras.`;
+        return `Duração: ${duracao}. Esboço CURTO: 2 pontos principais, cada um com 1 ilustração prática. Introdução breve. Conclusão breve. Total: 300-450 palavras.`;
     } else if (min <= 15) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço CONCISO: 2-3 pontos principais com 2 subpontos cada. Total: 450-600 palavras.`;
+        return `Duração: ${duracao}. Esboço CONCISO: 2-3 pontos principais, cada um com 1 ilustração (história ou analogia). Total: 450-600 palavras.`;
     } else if (min <= 20) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço MÉDIO: 3 pontos com subpontos, 1 ilustração, aplicação prática. Total: 600-800 palavras.`;
+        return `Duração: ${duracao}. Esboço MÉDIO: 3 pontos com subpontos, cada ponto com 1 ilustração prática e 1 aplicação. Total: 600-800 palavras.`;
     } else if (min <= 30) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço COMPLETO: 3-4 pontos detalhados, 2 ilustrações, aplicações práticas, conclusão com chamada à ação. Total: 900-1200 palavras.`;
+        return `Duração: ${duracao}. Esboço COMPLETO: 3-4 pontos detalhados, cada ponto com 1-2 ilustrações (histórias reais, exemplos do cotidiano, analogias), aplicações práticas, conclusão com chamada à ação. Total: 900-1200 palavras.`;
     } else if (min <= 45) {
-        return `O sermão tem duração de ${duracao}. Crie um esboço DETALHADO: 4-5 pontos com subpontos, 3-4 histórias/ilustrações, aplicações práticas, perguntas reflexivas. Total: 1400-1800 palavras.`;
+        return `Duração: ${duracao}. Esboço DETALHADO: 4-5 pontos com subpontos, cada ponto com 2 ilustrações ricas (histórias bíblicas, exemplos do dia a dia, analogias criativas), aplicações práticas, perguntas reflexivas. Total: 1400-1800 palavras.`;
     } else {
-        return `O sermão tem duração de ${duracao}. Crie um esboço MUITO COMPLETO E EXTENSO: 5-6 pontos principais com 4-5 subpontos cada, 5-6 histórias/ilustrações, referências cruzadas bíblicas, aplicações detalhadas, momentos de oração sugeridos, conclusão poderosa. Total: 2000-2800 palavras.`;
+        return `Duração: ${duracao}. Esboço MUITO COMPLETO: 5-6 pontos com 4-5 subpontos cada, cada ponto com 2-3 ilustrações detalhadas (histórias bíblicas, casos reais, parábolas, analogias), referências cruzadas bíblicas, aplicações práticas detalhadas, momentos de oração, conclusão poderosa. Total: 2000-2800 palavras.`;
     }
 }
 
@@ -88,9 +85,9 @@ app.post('/api/gerar', async (req, res) => {
 
         const tamanhoInstrucoes = getTamanhoInstrucoes(duracao);
 
-        const prompt = `Você é um assistente especializado em criar esboços de sermões para pastores e líderes cristãos evangélicos brasileiros.
+        const prompt = `Você é um especialista em homilética evangélica brasileira, criando esboços de sermões para pastores e líderes cristãos.
 
-Crie um esboço de sermão com as seguintes especificações:
+Crie um esboço de sermão com estas especificações:
 
 TEMA: ${tema}
 ${versiculo ? `VERSÍCULO BASE: ${versiculo}` : ''}
@@ -98,19 +95,23 @@ PÚBLICO-ALVO: ${publico}
 ${tamanhoInstrucoes}
 ${contexto ? `CONTEXTO ADICIONAL: ${contexto}` : ''}
 
-ESTRUTURA:
+ESTRUTURA OBRIGATÓRIA:
 1. Título criativo e impactante
 2. Versículo(s) base
-3. Introdução
-4. Pontos principais numerados
+3. Introdução envolvente
+4. Pontos principais numerados (cada ponto DEVE ter):
+   - Explicação bíblica
+   - ILUSTRAÇÃO OBRIGATÓRIA (história real, exemplo do cotidiano, analogia ou caso prático)
+   - Aplicação prática para a vida do ouvinte
 5. Conclusão com chamada à ação
 
-IMPORTANTE:
+REGRAS:
 - Escreva em português brasileiro
-- Use linguagem adequada ao público (${publico})
+- Linguagem adequada ao público: ${publico}
+- TODA ilustração deve ser concreta e relacionável (não genérica)
 - Seja fiel às escrituras evangélicas
 - Respeite RIGOROSAMENTE o tamanho especificado
-- Um sermão de 5 minutos deve ser MUITO mais curto que um de 1 hora`;
+- Sermão de 5 minutos é MUITO mais curto que de 1 hora`;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -128,7 +129,6 @@ IMPORTANTE:
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Groq API error:', errorData);
             return res.status(500).json({ error: 'Erro na API Groq: ' + (errorData.error?.message || 'Erro desconhecido') });
         }
 
@@ -137,25 +137,16 @@ IMPORTANTE:
 
         incrementUserUsage(userId);
 
-        res.json({
-            esboço: esbocoGerado,
-            usage: usage + 1,
-            limit: 50
-        });
+        res.json({ esboço: esbocoGerado, usage: usage + 1, limit: 50 });
 
     } catch (error) {
         console.error('Erro:', error);
-        res.status(500).json({ error: 'Erro interno do servidor: ' + error.message });
+        res.status(500).json({ error: 'Erro interno: ' + error.message });
     }
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({
-        status: 'online',
-        message: 'Sermão Pronto API funcionando',
-        model: 'llama-3.3-70b-versatile',
-        plan: 'GRATUITO: Groq free tier'
-    });
+    res.json({ status: 'online', model: 'llama-3.3-70b-versatile', plan: 'Groq free tier' });
 });
 
 app.get('/health', (req, res) => {
@@ -165,9 +156,9 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
     console.log(`\n📖 SERMÃO PRONTO BACKEND`);
     console.log(`✅ Endpoints:`);
-    console.log(`   POST http://localhost:${PORT}/api/gerar        - Gerar esboço (Groq)`);
-    console.log(`   GET  http://localhost:${PORT}/api/status       - Status do serviço`);
-    console.log(`   GET  http://localhost:${PORT}/health           - Health check`);
+    console.log(`   POST http://localhost:${PORT}/api/gerar`);
+    console.log(`   GET  http://localhost:${PORT}/api/status`);
+    console.log(`   GET  http://localhost:${PORT}/health`);
     console.log(`\n🔥 GRATUITO: Groq free tier`);
-    console.log(`⚡ Modelo: Llama 3.3 70B (poderoso e confiável)\n`);
+    console.log(`⚡ Modelo: Llama 3.3 70B\n`);
 });
