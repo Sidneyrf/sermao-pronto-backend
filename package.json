@@ -1,0 +1,28 @@
+{
+  "name": "sermao-pronto-backend",
+  "version": "1.0.0",
+  "description": "Backend para Sermão Pronto - controla limite de gerações e chama API Groq",
+  "main": "server-groq.js",
+  "scripts": {
+    "start": "node server-groq.js",
+    "dev": "nodemon server-groq.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sermon",
+    "groq",
+    "api",
+    "backend"
+  ],
+  "author": "Sidney Rodrigues",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
